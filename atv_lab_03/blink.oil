@@ -1,0 +1,53 @@
+/* Running the following example:
+ * just call goil a first time using the command line:
+ * goil --target=avr/arduino/nano --templates=../../../../goil/templates/blink.oil
+ * you may have to update ARDUINO section (l.13) for your configuration.
+ *
+ */
+
+OIL_VERSION = "2.5" : "test" ;
+
+CPU test {    
+  OS config {
+    STATUS = STANDARD;
+    BUILD = TRUE {
+      TRAMPOLINE_BASE_PATH = "../../../.."; // Caminho relativo da pasta atual até a raiz do trampoline
+      APP_NAME = "lab03"; // Nome do .hex
+      APP_SRC = "blink.cpp"; // Fonte do .hex
+      CPPCOMPILER = "avr-g++";
+      COMPILER = "avr-gcc";
+      LINKER = "avr-gcc";
+      ASSEMBLER = "avr-gcc";
+      COPIER = "avr-objcopy";
+      SYSTEM = PYTHON;
+	  
+	  LIBRARY = serial; //biblioteca para a porta serial
+	  
+    };
+    SYSTEM_CALL = TRUE;
+  };
+
+  APPMODE stdAppmode {};
+  
+  ALARM periodicAl1 {
+    COUNTER= SystemCounter;
+    ACTION = ACTIVATETASK {
+      TASK = periodicTask_T1;
+    };
+    AUTOSTART = TRUE {
+      ALARMTIME = 500; //activated at 1024 ms
+      CYCLETIME = 500; //activated each 1024 ms
+      APPMODE = stdAppmode;
+    };
+   };
+
+
+  TASK periodicTask_T1 {
+    PRIORITY = 5;
+    AUTOSTART = FALSE;
+    ACTIVATION = 1;
+    SCHEDULE = FULL;
+    STACKSIZE = 256;
+  };
+
+};
