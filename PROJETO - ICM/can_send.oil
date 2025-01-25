@@ -1,0 +1,134 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Universidade de Brasilia (UnB)
+// Faculdade do Gama
+// Curso: Engenharia Automotiva
+// Disciplina : Engenharia de Software Automotivo
+//////////////////////////////////////////////////////////////////////////////////
+
+OIL_VERSION = "2.5" : "test";
+
+ CPU test {
+ OS config {
+    STATUS = STANDARD;
+	BUILD = TRUE {
+		TRAMPOLINE_BASE_PATH = "../../../.."; 	 // L14 -> diretório base relativo do Trampoline. 
+		APP_NAME             = "PROJECT_ICM";     // este parâmetro deve ser configurado em função da localização 
+		APP_SRC 			 = "can_send.cpp";	 // dos arquivos .cpp e .oil.
+		CPPCOMPILER 		 = "avr-g++";		 // L15 -> nome da aplicação compilada. Esta declaração é 
+		COMPILER 			 = "avr-gcc";		 // utilizada para especificar o nome a ser atribuído ao arquivo 
+		LINKER 				 = "avr-gcc";		 // contendo a imagem binária gerada (image.hex)nome do arquivo de código-fonte da aplicação
+		ASSEMBLER 			 = "avr-gcc";
+		COPIER 				 = "avr-objcopy";
+		SYSTEM 				 = PYTHON;
+		LIBRARY 			 = serial;
+		LIBRARY 			 = mcp_can;
+		};
+	SYSTEM_CALL = TRUE;
+	};
+
+ APPMODE stdAppmode {};
+
+// Declaração dos Recursos Compartilhados
+ RESOURCE SEND_RESOURCE {
+	RESOURCEPROPERTY = STANDARD; // Recurso de proteção para envio de dados
+};
+
+ RESOURCE RECEIVE_RESOURCE {
+	RESOURCEPROPERTY = STANDARD;  // Recurso de proteção para recebimento de dados
+};
+
+ // Task de recebimento do frame ETC2 - mensagem M1
+ TASK ReceiveFrameETC2{ 
+	PRIORITY = 31; // colocando prioridade menor para recebimento de frame  
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	RESOURCE = RECEIVE_RESOURCE;
+	};
+
+ // Alarme de ativação da função de ler a marcha a cada 200ms
+ ALARM Alarm_gear{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{ 
+		TASK = ReceiveFrameETC2;
+		};
+	AUTOSTART = TRUE{
+		ALARMTIME = 200; 
+		CYCLETIME = 200; 
+		APPMODE = stdAppmode;
+		};
+	};
+
+// Task de recebimento do frame EECU1 - mensagem M2	
+ TASK ReceiveFrameEECU1{ 
+	PRIORITY = 29;   
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	RESOURCE = RECEIVE_RESOURCE;
+	};
+
+ // Alarme de ativação da função de recebimento de RPM a cada 100ms
+ ALARM Alarm_RPM{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{ 
+		TASK = ReceiveFrameEECU1;
+		};
+	AUTOSTART = TRUE {
+		ALARMTIME = 100; 
+		CYCLETIME = 100; 
+		APPMODE = stdAppmode;
+		};
+	};
+
+// Task de recebimento do frame CCVS - mensagem M3
+ TASK ReceiveFrameCCVS{  
+	PRIORITY = 28;     
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	RESOURCE = RECEIVE_RESOURCE;
+	};
+
+ // Alarme de ativação da função de ler a velocidade a cada 250ms
+ ALARM Alarm_spd{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{
+		TASK = ReceiveFrameCCVS;
+		};
+	AUTOSTART = TRUE {
+		ALARMTIME = 250;
+		CYCLETIME = 250; 
+		APPMODE = stdAppmode;
+		};
+	};
+	
+// Task de apresentação dos dados
+ TASK ShowData{  
+	PRIORITY = 70;     
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	RESOURCE = SEND_RESOURCE; // bloqueio do barramento por questão
+	};						  // de redundância
+
+ // Alarme de ativação da função de mostrar os dados a cada 500ms
+ ALARM Alarm_display{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{
+		TASK = ShowData;
+		};
+	AUTOSTART = TRUE {
+		ALARMTIME = 500;
+		CYCLETIME = 500; 
+		APPMODE = stdAppmode;
+		};
+	};
+ };
+
+ 
+ 

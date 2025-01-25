@@ -1,0 +1,60 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Universidade de Brasilia (UnB)
+// Faculdade do Gama
+// Curso: Engenharia Automotiva
+// Disciplina : Engenharia de Software Automotivo
+//////////////////////////////////////////////////////////////////////////////////
+
+OIL_VERSION = "2.5" : "test";
+
+ CPU test {
+ OS config {
+    STATUS = STANDARD;
+	BUILD = TRUE {
+		TRAMPOLINE_BASE_PATH = "../../../.."; 	 // L14 -> diretório base relativo do Trampoline. 
+		APP_NAME             = "PROJECT_TCM";     // este parâmetro deve ser configurado em função da localização 
+		APP_SRC 			 = "can_send.cpp";	 // dos arquivos .cpp e .oil.
+		CPPCOMPILER 		 = "avr-g++";		 // L15 -> nome da aplicação compilada. Esta declaração é 
+		COMPILER 			 = "avr-gcc";		 // utilizada para especificar o nome a ser atribuído ao arquivo 
+		LINKER 				 = "avr-gcc";		 // contendo a imagem binária gerada (image.hex)nome do arquivo de código-fonte da aplicação
+		ASSEMBLER 			 = "avr-gcc";
+		COPIER 				 = "avr-objcopy";
+		SYSTEM 				 = PYTHON;
+		LIBRARY 			 = serial;
+		LIBRARY 			 = mcp_can;
+		};
+	SYSTEM_CALL = TRUE;
+	};
+
+ APPMODE stdAppmode {};
+
+ RESOURCE SEND_RESOURCE {
+	RESOURCEPROPERTY = STANDARD; 
+};
+
+ // Task de envio do frame ETC2	
+ TASK SendFrameETC2{ 
+	PRIORITY = 48; // colocando prioridade maior para envio de frame  
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	RESOURCE = SEND_RESOURCE;
+	};
+
+ // Alarme de ativação da função de envio de marcha a cada 200ms
+ ALARM Alarm_gear{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{ 
+		TASK = SendFrameETC2;
+		};
+	AUTOSTART = TRUE {
+		ALARMTIME = 200; 
+		CYCLETIME = 200; 
+		APPMODE = stdAppmode;
+		};
+	};
+ };
+
+ 
+ 
