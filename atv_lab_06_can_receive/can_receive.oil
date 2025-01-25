@@ -1,0 +1,50 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Universidade de Brasilia (UnB)
+// Faculdade do Gama
+// Curso: Engenharia Automotiva
+// Disciplina : Engenharia de Software Automotivo
+//////////////////////////////////////////////////////////////////////////////////
+
+OIL_VERSION = "2.5" : "test";
+
+CPU test {
+	OS config {
+		STATUS = STANDARD;
+		BUILD = TRUE {
+			TRAMPOLINE_BASE_PATH = "../../../..";
+			APP_NAME 			 = "lab06_receive";
+			APP_SRC 			 = "can_receive.cpp";
+			CPPCOMPILER 		 = "avr-g++";
+			COMPILER 			 = "avr-gcc";
+			LINKER 				 = "avr-gcc";
+			ASSEMBLER 			 = "avr-gcc";
+			COPIER 				 = "avr-objcopy";
+			SYSTEM 				 = PYTHON;
+			LIBRARY 			 = serial;
+			LIBRARY 			 = mcp_can;
+			};
+		SYSTEM_CALL = TRUE;
+		};
+
+	APPMODE stdAppmode {};
+
+	TASK ReceiveFrameECM {
+		PRIORITY = 50;
+		AUTOSTART = FALSE;
+		ACTIVATION = 1;
+		SCHEDULE = FULL;
+		STACKSIZE = 256;
+		};
+	
+	ALARM Alarm_rpm{
+		COUNTER = SystemCounter;
+		ACTION = ACTIVATETASK{
+			TASK = ReceiveFrameECM;
+			};
+	AUTOSTART = TRUE{
+		ALARMTIME = 500; //ativado a cada 512 ms
+		CYCLETIME = 500; //ativado a cada 512 ms
+		APPMODE = stdAppmode;
+		};
+	};
+};

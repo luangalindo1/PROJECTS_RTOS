@@ -1,0 +1,83 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Universidade de Brasilia (UnB)
+// Faculdade do Gama
+// Curso: Engenharia Automotiva
+// Disciplina : Engenharia de Software Automotivo
+//////////////////////////////////////////////////////////////////////////////////
+
+OIL_VERSION = "2.5" : "test";
+
+ CPU test {
+ OS config {
+    STATUS = STANDARD;
+	BUILD = TRUE {
+		TRAMPOLINE_BASE_PATH = "../../../.."; 	 // L14 -> diretório base relativo do Trampoline. 
+		APP_NAME             = "lab06_send";     // este parâmetro deve ser configurado em função da localização 
+		APP_SRC 			 = "can_send.cpp";	 // dos arquivos .cpp e .oil.
+		CPPCOMPILER 		 = "avr-g++";		 // L15 -> nome da aplicação compilada. Esta declaração é 
+		COMPILER 			 = "avr-gcc";		 // utilizada para especificar o nome a ser atribuído ao arquivo 
+		LINKER 				 = "avr-gcc";		 // contendo a imagem binária gerada (image.hex)nome do arquivo de código-fonte da aplicação
+		ASSEMBLER 			 = "avr-gcc";
+		COPIER 				 = "avr-objcopy";
+		SYSTEM 				 = PYTHON;
+		LIBRARY 			 = serial;
+		LIBRARY 			 = mcp_can;
+		};
+	SYSTEM_CALL = TRUE;
+	};
+
+ APPMODE stdAppmode {};
+
+ // Task de envio do frame ECM pg77
+	
+ TASK SendFrameECM{ // Engine Configuration Messages 
+	PRIORITY = 50; // colocando prioridade maior para envio de frame  
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	};
+
+
+ // Alarme de ativação da função de envio de RPM (frame ECM)
+ 
+ ALARM Alarm_rpm{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{ // ação que o alarme deve executar todas as vezes em que o período do alarme expirar
+		TASK = SendFrameECM;
+		};
+	AUTOSTART = TRUE {
+		ALARMTIME = 500; //ativado a cada 512 ms
+		CYCLETIME = 500; //ativado a cada 512 ms
+		APPMODE = stdAppmode;
+		};
+	};
+
+
+ // Task de envio do frame CCVS pg39
+	
+/* TASK SendFrameCCVS{ // Cruise Control/Vehicle Speed
+	PRIORITY = 50; // colocando prioridade maior para envio de frame  
+	AUTOSTART = FALSE;
+	ACTIVATION = 1;
+	SCHEDULE = FULL;
+	STACKSIZE = 256;
+	};
+
+ // Alarme de ativação da função de envio de velocidade
+ 
+ ALARM Alarm_speed{ 
+	COUNTER = SystemCounter;
+	ACTION = ACTIVATETASK{ // ação que o alarme deve executar todas as vezes em que o período do alarme expirar
+		TASK = SendFrameCCVS;
+		};
+	AUTOSTART = TRUE{
+		ALARMTIME = 1000; 
+		CYCLETIME = 1000; 
+		APPMODE = stdAppmode;
+		};
+	};*/
+ };
+
+ 
+ 
